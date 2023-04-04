@@ -2,6 +2,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
@@ -20,19 +22,10 @@ public class Main {
     }
 
     public static List<B> mapAToB(List<A> aList, List<B> bList) {
-        Map<Integer, B> bMap = new HashMap<>();
-        bList.forEach(b -> bMap.put(b.getId(), b));
-
-        bList.stream()
-                .map(B::getId)
-                .filter(id -> aList.stream().noneMatch(a -> a.getId().equals(id)))
-                .forEach(bMap::remove);
-
-        aList.forEach(a -> {
-            if (!bMap.containsKey(a.getId())) {
-                bMap.put(a.getId(), new B(a.getId(), a.getName()));
-            }
-        });
+        Map<Integer, B> bMap = bList.stream()
+                .filter(b -> aList.stream().noneMatch(a -> a.getId().equals(b.getId())))
+                .collect(Collectors.toMap(B::getId, Function.identity()));
+        aList.forEach(a -> bMap.putIfAbsent(a.getId(), new B(a.getId(), a.getName())));
         return new ArrayList<>(bMap.values());
     }
 }
